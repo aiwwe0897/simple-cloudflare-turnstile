@@ -178,22 +178,19 @@ function cfturnstile_check($postdata = "") {
 		$verify = wp_remote_retrieve_body($verify);
 		$response = json_decode($verify);
 
-		if($response->success) {
-			$results['success'] = $response->success;
-		} else {
-			$results['success'] = false;
-		}
+		$results['success'] = $response->success ?? false;
 
-		foreach ($response as $key => $val) {
-			if ($key == 'error-codes') {
-				foreach ($val as $key => $error_val) {
-					$results['error_code'] = $error_val;
-					if($error_val == 'invalid-input-secret') {
-						update_option('cfturnstile_tested', 'no'); // Disable if invalid secret
-					}
-				}
-			}
-		}
+		foreach ($response as $outerKey => $val) {
+    if ($outerKey == 'error-codes') {
+        foreach ($val as $innerKey => $error_val) {
+            $results['error_codes'][] = $error_val; 
+            if($error_val == 'invalid-input-secret') {
+                update_option('cfturnstile_tested', 'no'); // Disable if invalid secret
+            }
+        }
+    }
+}
+
 
 		do_action('cfturnstile_after_check', $response, $results);
 
